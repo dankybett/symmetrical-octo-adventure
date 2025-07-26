@@ -393,25 +393,25 @@ export default function RandomPicker() {
 
         {items.length > 0 && (
           <div className="mb-4 sm:mb-6">
+            <div className="mb-4 sm:mb-6">
+              <label className="block font-semibold text-gray-700 text-sm sm:text-base mb-2">
+                Theme
+              </label>
+              <select
+                value={nameCategory}
+                onChange={(e) => setNameCategory(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none text-base"
+                disabled={isRacing || countdown}
+              >
+                {Object.keys(horseNameCategories).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
             <h3 className="font-semibold text-gray-700 mb-3 text-sm sm:text-base">
-              <div className="mb-4 sm:mb-6">
-                <label className="block font-semibold text-gray-700 text-sm sm:text-base mb-2">
-                  Theme
-                </label>
-                <select
-                  value={nameCategory}
-                  onChange={(e) => setNameCategory(e.target.value)}
-                  className="w-full sm:w-auto px-4 py-2 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none text-base"
-                  disabled={isRacing || countdown}
-                >
-                  {Object.keys(horseNameCategories).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              ; Contestants:
+              Contestants:
             </h3>
             <div className="grid grid-cols-1 gap-2 sm:gap-3">
               {items.map((item, index) => (
