@@ -31,6 +31,7 @@ export default function RandomPicker() {
   const commentaryIntervalRef = useRef(null);
   const animationFrameIdRef = useRef(null);
   const raceStartTime = useRef(null);
+  const runSoundRef = useRef(null);
 
   const maxItems = 20;
 
@@ -143,6 +144,22 @@ export default function RandomPicker() {
     );
     setShuffledHorseNames(shuffled);
   }, []);
+
+  // Play running sound when the race is active and not muted
+  useEffect(() => {
+    const audio = runSoundRef.current;
+    if (!audio) return;
+    if (isRacing && !muted) {
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  }, [isRacing, muted]);
 
   const handleCountChange = (e) => {
     const count = Math.min(
@@ -325,6 +342,7 @@ export default function RandomPicker() {
 
   return (
     <div className="min-h-screen bg-[#e6f4f1] flex flex-col items-center justify-start p-2 sm:p-4 sm:justify-center">
+      <audio ref={runSoundRef} src="/run.mp3" loop className="hidden" />
       <div className="bg-white bg-opacity-95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 w-full max-w-4xl mt-2 sm:mt-0">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
           <div className="flex items-center gap-2 sm:gap-3">
