@@ -35,6 +35,17 @@ export default function RandomPicker() {
 
   const maxItems = 20;
 
+  // Ensure mobile devices render the layout correctly
+  useEffect(() => {
+    const existing = document.querySelector("meta[name='viewport']");
+    if (!existing) {
+      const meta = document.createElement("meta");
+      meta.name = "viewport";
+      meta.content = "width=device-width, initial-scale=1";
+      document.head.appendChild(meta);
+    }
+  }, []);
+
   // Enhanced commentary with more variety
   const commentaryPhrases = [
     "And they're off!",
@@ -341,7 +352,7 @@ export default function RandomPicker() {
   const isStartDisabled = itemCount === 0 || isRacing || countdown;
 
   return (
-    <div className="min-h-screen bg-[#e6f4f1] flex flex-col items-center justify-start p-2 sm:p-4 sm:justify-center">
+    <div className="min-h-screen bg-[#e6f4f1] flex flex-col items-center justify-start p-2 sm:p-4 sm:justify-center overflow-x-hidden">
       <audio ref={runSoundRef} src="/run.mp3" loop className="hidden" />
       <div className="bg-white bg-opacity-95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 w-full max-w-4xl mt-2 sm:mt-0">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
