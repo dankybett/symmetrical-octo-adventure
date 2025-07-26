@@ -33,6 +33,10 @@ export default function RandomPicker() {
   const raceStartTime = useRef(null);
   const runSoundRef = useRef(null);
 
+  const trackContainerRef = useRef(null);
+
+  const TRACK_LENGTH_PX = 1200;
+
   const maxItems = 20;
 
   // Ensure mobile devices render the layout correctly
@@ -238,8 +242,7 @@ export default function RandomPicker() {
       setCommentary(next);
     }, 1500);
 
-    const trackWidth =
-      typeof window !== "undefined" ? window.innerWidth - 200 : 800;
+    const trackWidth = TRACK_LENGTH_PX;
     let finished = false;
 
     // More realistic speed distribution
@@ -248,10 +251,13 @@ export default function RandomPicker() {
       .map(() => Math.random() * 0.003 + 0.002);
 
     const updatePositions = () => {
+      let updatedPositions = [];
       setPositions((prevPositions) => {
-        if (finished) return prevPositions;
-
-        const newPositions = prevPositions.map((pos, idx) => {
+        if (finished) {
+          updatedPositions = prevPositions;
+          return prevPositions;
+        }
+        updatedPositions = prevPositions.map((pos, idx) => {
           // Add more dramatic speed variations
           const surge = Math.random() * 0.008 - 0.003;
           const delta = speeds[idx] + surge;
@@ -260,7 +266,7 @@ export default function RandomPicker() {
           return Math.max(0, nextPos);
         });
 
-        const winnerIdx = newPositions.findIndex((p) => p >= 1);
+        const winnerIdx = updatedPositions.findIndex((p) => p >= 1);
         if (winnerIdx !== -1) {
           finished = true;
           clearInterval(timerInterval);
@@ -309,8 +315,15 @@ export default function RandomPicker() {
           clearInterval(commentaryIntervalRef.current);
         }
 
-        return newPositions;
+        return updatedPositions;
       });
+
+      if (trackContainerRef.current) {
+        const container = trackContainerRef.current;
+        const lead = Math.max(...updatedPositions);
+        const newLeft = lead * (trackWidth - container.clientWidth);
+        container.scrollTo({ left: newLeft, behavior: "smooth" });
+      }
 
       if (!finished) {
         animationFrameIdRef.current = requestAnimationFrame(updatePositions);
@@ -498,131 +511,134 @@ export default function RandomPicker() {
         )}
 
         {items.length > 0 && (
-          <div
-            className="p-3 sm:p-6 rounded-2xl shadow-inner bg-no-repeat bg-cover bg-center"
-            style={{
-              backgroundImage: "url('/racetrack1.jpg')",
-              backgroundColor: "#e6f4f1", // fallback if image fails
-            }}
-          >
-            <div className="space-y-2 sm:space-y-3">
-              {items.map((item, index) => (
-                <div
-                  key={index}
-                  className="relative w-full h-12 sm:h-16 bg-white bg-opacity-80 border-2 border-gray-300 rounded-xl overflow-hidden shadow-md"
-                >
-                  {/* Track lines */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-30"></div>
-
-                  {/* Progress trail */}
-                  <motion.div
-                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-400 to-purple-400 opacity-60"
-                    animate={{
-                      width: positions[index]
-                        ? `${positions[index] * 100}%`
-                        : "0%",
-                    }}
-                    transition={{ duration: 0.1 }}
-                  />
-
-                  {/* Finish line */}
-                  <div className="absolute right-1 sm:right-2 top-0 h-full w-0.5 sm:w-1 bg-red-500 opacity-80"></div>
-
-                  {/* Horse */}
-                  <motion.div
-                    className={`absolute left-0 top-0 h-full flex items-center px-2 sm:px-3 text-sm sm:text-lg font-semibold z-10 min-w-0 ${
-                      winnerIndex === index
-                        ? "bg-yellow-300 text-yellow-800 shadow-lg"
-                        : "bg-white bg-opacity-90"
-                    }`}
-                    animate={{
-                      x: positions[index]
-                        ? `${Math.min(positions[index] * 82, 82)}%`
-                        : "0%",
-                    }}
-                    transition={{ duration: 0.1 }}
+          <div className="overflow-x-auto" ref={trackContainerRef}>
+            <div
+              className="p-3 sm:p-6 rounded-2xl shadow-inner bg-no-repeat bg-cover bg-center"
+              style={{
+                backgroundImage: "url('/racetrack1.jpg')",
+                backgroundColor: "#e6f4f1", // fallback if image fails
+                width: `${TRACK_LENGTH_PX}px`,
+              }}
+            >
+              <div className="space-y-2 sm:space-y-3">
+                {items.map((item, index) => (
+                  <div
+                    key={index}
+                    className="relative w-full h-12 sm:h-16 bg-white bg-opacity-80 border-2 border-gray-300 rounded-xl overflow-hidden shadow-md"
                   >
+                    {/* Track lines */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200 to-transparent opacity-30"></div>
+
+                    {/* Progress trail */}
                     <motion.div
-                      animate={
-                        isRacing
-                          ? {
-                              rotateZ: [0, -2, 2, -2, 2, 0],
-                              y: [0, -2, 2, -1, 1, 0],
-                            }
-                          : { rotateZ: 0, y: 0 }
-                      }
-                      transition={{
-                        duration: 0.4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                      className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-400 to-purple-400 opacity-60"
+                      animate={{
+                        width: positions[index]
+                          ? `${positions[index] * 100}%`
+                          : "0%",
                       }}
-                      className="flex items-center gap-1 sm:gap-2 min-w-0"
+                      transition={{ duration: 0.1 }}
+                    />
+
+                    {/* Finish line */}
+                    <div className="absolute right-1 sm:right-2 top-0 h-full w-0.5 sm:w-1 bg-red-500 opacity-80"></div>
+
+                    {/* Horse */}
+                    <motion.div
+                      className={`absolute left-0 top-0 h-full flex items-center px-2 sm:px-3 text-sm sm:text-lg font-semibold z-10 min-w-0 ${
+                        winnerIndex === index
+                          ? "bg-yellow-300 text-yellow-800 shadow-lg"
+                          : "bg-white bg-opacity-90"
+                      }`}
+                      animate={{
+                        x: positions[index]
+                          ? `${Math.min(positions[index] * 82, 82)}%`
+                          : "0%",
+                      }}
+                      transition={{ duration: 0.1 }}
                     >
-                      <span className="text-base sm:text-xl flex-shrink-0">
-                        {horseAvatars[index % horseAvatars.length]}
-                      </span>
+                      <motion.div
+                        animate={
+                          isRacing
+                            ? {
+                                rotateZ: [0, -2, 2, -2, 2, 0],
+                                y: [0, -2, 2, -1, 1, 0],
+                              }
+                            : { rotateZ: 0, y: 0 }
+                        }
+                        transition={{
+                          duration: 0.4,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                        className="flex items-center gap-1 sm:gap-2 min-w-0"
+                      >
+                        <span className="text-base sm:text-xl flex-shrink-0">
+                          {horseAvatars[index % horseAvatars.length]}
+                        </span>
 
-                      <span className="text-xs sm:text-sm font-bold truncate max-w-20 sm:max-w-32">
-                        {getHorseName(item, index)}
-                      </span>
+                        <span className="text-xs sm:text-sm font-bold truncate max-w-20 sm:max-w-32">
+                          {getHorseName(item, index)}
+                        </span>
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
 
-                  {/* Lane number */}
-                  <div className="absolute right-2 sm:right-6 top-0.5 sm:top-1 text-xs font-bold text-gray-500">
-                    #{index + 1}
+                    {/* Lane number */}
+                    <div className="absolute right-2 sm:right-6 top-0.5 sm:top-1 text-xs font-bold text-gray-500">
+                      #{index + 1}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {(isRacing || countdown) && (
-              <motion.div
-                className="text-center mt-3 sm:mt-4 p-2 sm:p-3 bg-white bg-opacity-70 rounded-lg"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <p className="text-base sm:text-lg font-bold text-gray-800">
-                  📢 {commentary || `Get ready... ${countdown}!`}
-                </p>
-              </motion.div>
-            )}
-
-            {winner && (
-              <motion.div
-                className="mt-4 sm:mt-6 text-center p-4 sm:p-6 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-xl shadow-lg"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="text-4xl sm:text-6xl mb-2">🏆</div>
-                <p className="text-lg sm:text-xl font-bold text-gray-800">
-                  WINNER!
-                </p>
-                <p className="text-xl sm:text-2xl font-bold text-yellow-800 mb-2 break-words">
-                  {winner}
-                </p>
-                <p className="text-base sm:text-lg text-gray-700">
-                  Finish Time: {raceTime}s
-                </p>
-                {raceTime === fastestTime && (
-                  <p className="text-xs sm:text-sm font-bold text-red-600 mt-1">
-                    🔥 NEW RECORD! 🔥
-                  </p>
-                )}
-              </motion.div>
-            )}
-
-            {winner && !isRacing && !countdown && (
-              <div className="text-center mt-2">
-                <button
-                  onClick={beginCountdown}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-xl font-semibold shadow-lg transition-all active:scale-95"
-                >
-                  🔁 Race Again
-                </button>
+                ))}
               </div>
-            )}
+
+              {(isRacing || countdown) && (
+                <motion.div
+                  className="text-center mt-3 sm:mt-4 p-2 sm:p-3 bg-white bg-opacity-70 rounded-lg"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <p className="text-base sm:text-lg font-bold text-gray-800">
+                    📢 {commentary || `Get ready... ${countdown}!`}
+                  </p>
+                </motion.div>
+              )}
+
+              {winner && (
+                <motion.div
+                  className="mt-4 sm:mt-6 text-center p-4 sm:p-6 bg-gradient-to-r from-yellow-200 to-yellow-300 rounded-xl shadow-lg"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="text-4xl sm:text-6xl mb-2">🏆</div>
+                  <p className="text-lg sm:text-xl font-bold text-gray-800">
+                    WINNER!
+                  </p>
+                  <p className="text-xl sm:text-2xl font-bold text-yellow-800 mb-2 break-words">
+                    {winner}
+                  </p>
+                  <p className="text-base sm:text-lg text-gray-700">
+                    Finish Time: {raceTime}s
+                  </p>
+                  {raceTime === fastestTime && (
+                    <p className="text-xs sm:text-sm font-bold text-red-600 mt-1">
+                      🔥 NEW RECORD! 🔥
+                    </p>
+                  )}
+                </motion.div>
+              )}
+
+              {winner && !isRacing && !countdown && (
+                <div className="text-center mt-2">
+                  <button
+                    onClick={beginCountdown}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-xl font-semibold shadow-lg transition-all active:scale-95"
+                  >
+                    🔁 Race Again
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
