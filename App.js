@@ -583,6 +583,17 @@ export default function RandomPicker() {
                 )}
               </motion.div>
             )}
+
+            {winner && !isRacing && !countdown && (
+              <div className="text-center mt-2">
+                <button
+                  onClick={beginCountdown}
+                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-xl font-semibold shadow-lg transition-all active:scale-95"
+                >
+                  🔁 Race Again
+                </button>
+              </div>
+            )}
           </div>
         )}
 
